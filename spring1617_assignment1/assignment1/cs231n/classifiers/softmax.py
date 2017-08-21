@@ -1,6 +1,5 @@
 import numpy as np
 from random import shuffle
-from past.builtins import xrange
 
 def softmax_loss_naive(W, X, y, reg):
   """
@@ -20,6 +19,9 @@ def softmax_loss_naive(W, X, y, reg):
   - loss as single float
   - gradient with respect to weights W; an array of same shape as W
   """
+  # Initialize important values
+  num_train = X.shape[0] # N
+  num_class = X.shape[1] # C
   # Initialize the loss and gradient to zero.
   loss = 0.0
   dW = np.zeros_like(W)
@@ -30,7 +32,26 @@ def softmax_loss_naive(W, X, y, reg):
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
-  pass
+  for i in range(num_train):
+      scores = X[i].dot(W) # scores using f(W,x) = Wx
+      scores -= np.max(scores) # shifting all scores by the maximum value
+
+      loss -= scores[y[i]]
+
+      sum_exp = 0.0
+      for score in scores:
+        sum_exp += np.exp(score)
+
+      for j in range(C):
+        dW[:,j] += ((1.0 / sum_exp) * (np.exp(scores[j]) * X[i]))
+        if j == y[i]:
+          dW[:,j] -= X[i]
+      loss += np.log(sum_exp)
+
+  loss /= num_train
+  dW /= num_train
+  loss += 0.5 * reg * np.sum(W * W)
+  dW += reg * W
   #############################################################################
   #                          END OF YOUR CODE                                 #
   #############################################################################
@@ -48,16 +69,38 @@ def softmax_loss_vectorized(W, X, y, reg):
   loss = 0.0
   dW = np.zeros_like(W)
 
+  num_train = X.shape[0]
+
   #############################################################################
   # TODO: Compute the softmax loss and its gradient using no explicit loops.  #
   # Store the loss in loss and the gradient in dW. If you are not careful     #
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
-  pass
+  f = X.dot(W) # all scores (N x C)
+  f_exp = np.exp(f)
+  loss += (-1 * np.sum(f[range(X.shape[0]), y])) + np.log(np.sum(f_exp))
+
+  loss /= num_train
+  loss += 0.5 * reg * np.sum(W * W)
+
+  probabilities = np.exp(f) / np.sum(np.exp(f),axis=1,keepdims=True)
+  probabilities[range(num_train),y] -= 1
+  dW = X.T.dot(probabilities) / num_train
+  dW += reg * W
   #############################################################################
   #                          END OF YOUR CODE                                 #
   #############################################################################
 
   return loss, dW
 
+D = 4
+C = 8
+N = 10
+W = np.random.randn(D,C)
+X = np.random.randn(N,D)
+y = np.random.randint(0, high=C, size=N)
+reg = 10
+tuple1 = softmax_loss_naive(W, X, y, reg)
+tuple2 = softmax_loss_vectorized(W, X, y, reg)
+print(tuple1[0] , "\n" ,tuple1[1] ,"\n", tuple2[0], "\n", tuple2[1])

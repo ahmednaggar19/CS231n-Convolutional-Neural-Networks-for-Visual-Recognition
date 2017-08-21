@@ -74,7 +74,7 @@ def svm_loss_vectorized(W, X, y, reg):
   # result in loss.                                                           #
   #############################################################################
   all_scores = X.dot(W)
-  all_margins = (all_scores.T - y + 1).T # assuming same delta = 1
+  all_margins = (all_scores.T - all_scores[nList, y] + 1).T # assuming same delta = 1
   all_margins[nList, y] = 0   # do not count correct class scores' margins
   all_margins[all_margins < 0] = 0 # do not count negative margins
   loss += np.sum(all_margins) 
@@ -93,7 +93,7 @@ def svm_loss_vectorized(W, X, y, reg):
   # to reuse some of the intermediate values that you used to compute the     #
   # loss.                                                                     #
   #############################################################################
-  num_pos = np.sum(all_margins.T > 0, axis=0) # number of positive losses
+  num_pos = np.sum(all_margins.T > 0, axis=0) # number of positive margins
 
   dscores = np.zeros(all_scores.T.shape)
   dscores[all_margins.T > 0] = 1
@@ -105,7 +105,7 @@ def svm_loss_vectorized(W, X, y, reg):
   #                             END OF YOUR CODE                              #
   #############################################################################
 
-  return loss, dW
+  return loss, dW.T
 
 ########## Testing ##########
 D = 4
@@ -117,4 +117,5 @@ y = np.random.randint(0, high=C, size=N)
 reg = 10
 tuple1 = svm_loss_naive(W, X, y, reg)
 tuple2 = svm_loss_vectorized(W, X, y, reg)
-print(tuple1, tuple2)
+print(tuple1[1], "\n"
+      , tuple2[1])
