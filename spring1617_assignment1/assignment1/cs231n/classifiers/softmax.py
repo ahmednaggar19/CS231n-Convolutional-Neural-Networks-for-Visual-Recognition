@@ -21,11 +21,10 @@ def softmax_loss_naive(W, X, y, reg):
   """
   # Initialize important values
   num_train = X.shape[0] # N
-  num_class = X.shape[1] # C
+  C = num_class = W.shape[1] # C
   # Initialize the loss and gradient to zero.
   loss = 0.0
   dW = np.zeros_like(W)
-
   #############################################################################
   # TODO: Compute the softmax loss and its gradient using explicit loops.     #
   # Store the loss in loss and the gradient in dW. If you are not careful     #
@@ -70,7 +69,6 @@ def softmax_loss_vectorized(W, X, y, reg):
   dW = np.zeros_like(W)
 
   num_train = X.shape[0]
-
   #############################################################################
   # TODO: Compute the softmax loss and its gradient using no explicit loops.  #
   # Store the loss in loss and the gradient in dW. If you are not careful     #
@@ -94,13 +92,13 @@ def softmax_loss_vectorized(W, X, y, reg):
 
   return loss, dW
 
-D = 4
-C = 8
-N = 10
-W = np.random.randn(D,C)
-X = np.random.randn(N,D)
-y = np.random.randint(0, high=C, size=N)
-reg = 10
-tuple1 = softmax_loss_naive(W, X, y, reg)
-tuple2 = softmax_loss_vectorized(W, X, y, reg)
-print(tuple1[0] , "\n" ,tuple1[1] ,"\n", tuple2[0], "\n", tuple2[1])
+# D = 4
+# C = 8
+# N = 10
+# W = np.random.randn(D,C)
+# X = np.random.randn(N,D)
+# y = np.random.randint(0, high=C, size=N)
+# reg = 10
+# tuple1 = softmax_loss_naive(W, X, y, reg)
+# tuple2 = softmax_loss_vectorized(W, X, y, reg)
+# print(tuple1[0] , "\n" ,tuple1[1] ,"\n", tuple2[0], "\n", tuple2[1])
