@@ -2,7 +2,6 @@ from __future__ import print_function
 
 import numpy as np
 import matplotlib.pyplot as plt
-from past.builtins import xrange
 
 class TwoLayerNet(object):
   """
@@ -77,7 +76,7 @@ class TwoLayerNet(object):
     # shape (N, C).                                                             #
     #############################################################################
     hidden_neurons = X.dot(W1) + b1 # fully connected
-    hidden_neurons_RELU = np.maximum(hidden_neurons, 0)  # RELU
+    X1 = hidden_neurons_RELU = np.maximum(hidden_neurons, 0)  # RELU
     output_layer = hidden_neurons_RELU.dot(W2) + b2 # fully connected
     scores = output_layer
     
@@ -97,11 +96,16 @@ class TwoLayerNet(object):
     # in the variable loss, which should be a scalar. Use the Softmax           #
     # classifier loss.                                                          #
     #############################################################################
-    nList = range(X.shape[0])
-    data_loss = - scores[nList, y]
+    nList = range(N)
+    data_loss = -scores[nList, y]
+    data_loss = 0.0 
+    scores -= np.max(scores) # ensure stability
     scores_exp = np.exp(scores)   # ==> e ^ scores
-    data_loss += np.log(np.sum(scores_exp, axis=1))
-    reg_loss = reg * np.sum(W1 * W1) + reg * np.sum(W2 * W2)
+    denims = np.sum(scores_exp, axis=1) # denimenator = sum of e^score
+    denims = np.tile(denims, (scores_exp.shape[1], 1)).T
+    probs = scores_exp / denims
+    data_loss = -1 * np.log(probs[nList, y]).sum() / N
+    reg_loss = 0.5 * reg * (np.sum(W1 * W1)) + 0.5 * reg * (np.sum(W2 * W2))
     loss = data_loss + reg_loss
     #############################################################################
     #                              END OF YOUR CODE                             #
@@ -116,15 +120,19 @@ class TwoLayerNet(object):
     # and biases. Store the results in the grads dictionary. For example,       #
     # grads['W1'] should store the gradient on W1, and be a matrix of same size #
     #############################################################################
-    dScore = scores - Y
-    dW2 = ((dScore.T).dot(X1)).T/N + reg*W2
-    db2 = (dScore.T).dot(np.ones(X1.shape[0]))/N
-    dX1 = dScore.dot(W2.T)
-    dW1 = (((dX1*(X1>0)).T).dot(X)).T/N + reg*W1
-    db1 = (((dX1*(X1>0)).T).dot(np.ones(X.shape[0]))).T/N
+    dScore = probs
+    dScore[nList, y] -= 1
+    dScore /= N
 
-    grads['W1'] = dW1
-    grads['W2'] = dW2
+    dW2 = ((dScore.T).dot(X1)).T
+    db2 = dScore.sum(axis=0)
+    dX1 = dScore.dot(W2.T)
+    dHidden = (dX1 * (hidden_neurons > 0))
+    dW1 = ((dHidden.T).dot(X)).T 
+    db1 = dHidden.sum(axis=0)
+
+    grads['W1'] = dW1 + reg* W1
+    grads['W2'] = dW2 + reg * W2
     grads['b1'] = db1
     grads['b2'] = db2
     #############################################################################
@@ -172,9 +180,9 @@ class TwoLayerNet(object):
       # TODO: Create a random minibatch of training data and labels, storing  #
       # them in X_batch and y_batch respectively.                             #
       #########################################################################
-      batch_indices = np.random.randint(0, high=batch_size, size=batch_size))
+      batch_indices = np.random.choice(num_train, batch_size, replace=True)
       X_batch = X[batch_indices, :]
-      y_batch = y[batch_indices, :]
+      y_batch = y[batch_indices]
       #########################################################################
       #                             END OF YOUR CODE                          #
       #########################################################################
@@ -189,10 +197,10 @@ class TwoLayerNet(object):
       # using stochastic gradient descent. You'll need to use the gradients   #
       # stored in the grads dictionary defined above.                         #
       #########################################################################
-      self.params['W1'] += - learning_rate * grads['W1']
-      self.params['b1'] += - learning_rate * grads['b1']
-      self.params['W2'] += - learning_rate * grads['W2']
-      self.params['b2'] += - learning_rate * grads['b2']
+      self.params['W1'] += -(learning_rate * grads['W1'])
+      self.params['b1'] += -(learning_rate * grads['b1'])
+      self.params['W2'] += -(learning_rate * grads['W2'])
+      self.params['b2'] += -(learning_rate * grads['b2'])
       #########################################################################
       #                             END OF YOUR CODE                          #
       #########################################################################
@@ -237,11 +245,13 @@ class TwoLayerNet(object):
     ###########################################################################
     # TODO: Implement this function; it should be VERY simple!                #
     ###########################################################################
+    W1, b1 = self.params['W1'], self.params['b1']
+    W2, b2 = self.params['W2'], self.params['b2']
     hidden_neurons = X.dot(W1) + b1 # fully connected
     hidden_neurons_RELU = np.maximum(hidden_neurons, 0)  # RELU
     output_layer = hidden_neurons_RELU.dot(W2) + b2 # fully connected
     scores = output_layer
-    exp_X2 = pow(math.e, scores)
+    exp_X2 = np.exp(scores)
     probabilities = (exp_X2.T/np.sum(exp_X2, axis = 1)).T
     y_pred = np.argmax(probabilities, axis=1)
     ###########################################################################

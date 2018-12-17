@@ -1,5 +1,4 @@
 from __future__ import print_function
-from past.builtins import xrange
 
 import matplotlib
 import numpy as np
