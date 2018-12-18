@@ -97,8 +97,8 @@ class TwoLayerNet(object):
     # classifier loss.                                                          #
     #############################################################################
     nList = range(N)
-    data_loss = -scores[nList, y]
-    data_loss = 0.0 
+    # data_loss = -scores[nList, y]
+    # data_loss = 0.0 
     scores -= np.max(scores) # ensure stability
     scores_exp = np.exp(scores)   # ==> e ^ scores
     denims = np.sum(scores_exp, axis=1) # denimenator = sum of e^score
